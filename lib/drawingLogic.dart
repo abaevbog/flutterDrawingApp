@@ -4,32 +4,32 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-class DrawingPoints {
+class DrawingPoint {
   Paint paint;
-  Offset points;
-  SelectedOutput output;
-  DrawingPoints({this.points, this.paint});
+  Offset point;
+  DrawArtifactType output;
+  DrawingPoint({this.point, this.paint});
 }
 
 class DisplayFigure {
-  SelectedOutput figure;
-  DrawingPoints start;
-  DrawingPoints finish;
+  DrawArtifactType figure;
+  DrawingPoint start;
+  DrawingPoint finish;
   DisplayFigure({this.start, this.finish, this.figure});
   factory DisplayFigure.from(DisplayFigure other) {
     switch (other.figure) {
-      case SelectedOutput.Draw:
+      case DrawArtifactType.Draw:
         throw ("Constructor called on non-figure");
         break;
-      case SelectedOutput.Line:
+      case DrawArtifactType.Line:
         return DisplayLineClass(
             start: other.start, finish: other.finish, figure: other.figure);
         break;
-      case SelectedOutput.Rectangle:
+      case DrawArtifactType.Rectangle:
         return DisplayRectangleClass(
             start: other.start, finish: other.finish, figure: other.figure);
         break;
-      case SelectedOutput.Circle:
+      case DrawArtifactType.Circle:
         return DisplayCircleClass(
             start: other.start, finish: other.finish, figure: other.figure);
         break;
@@ -43,24 +43,24 @@ class DisplayFigure {
     figure = null;
   }
 
-  void setFigureType(SelectedOutput newFigure) {
+  void setFigureType(DrawArtifactType newFigure) {
     figure = newFigure;
   }
 
   void draw(Canvas canvas, Paint paint) {
     switch (figure) {
-      case SelectedOutput.Draw:
+      case DrawArtifactType.Draw:
         throw ("Draw method called on non-figure");
         break;
-      case SelectedOutput.Line:
+      case DrawArtifactType.Line:
         DisplayLineClass line = (this as DisplayLineClass);
         line.drawing(canvas, paint);
         break;
-      case SelectedOutput.Rectangle:
+      case DrawArtifactType.Rectangle:
         DisplayRectangleClass rect = (this as DisplayRectangleClass);
         rect.drawing(canvas, paint);
         break;
-      case SelectedOutput.Circle:
+      case DrawArtifactType.Circle:
         DisplayCircleClass circle = (this as DisplayCircleClass);
         circle.drawing(canvas, paint);
         break;
@@ -70,13 +70,13 @@ class DisplayFigure {
 
 class DisplayLineClass extends DisplayFigure {
   DisplayLineClass(
-      {DrawingPoints start, DrawingPoints finish, SelectedOutput figure})
+      {DrawingPoint start, DrawingPoint finish, DrawArtifactType figure})
       : super(start: start, finish: finish, figure: figure);
 
   void drawing(Canvas canvas, Paint paint) {
-    canvas.drawCircle(start.points, 3, paint);
-    canvas.drawCircle(finish.points, 3, paint);
-    canvas.drawLine(start.points, finish.points, paint);
+    canvas.drawCircle(start.point, 3, paint);
+    canvas.drawCircle(finish.point, 3, paint);
+    canvas.drawLine(start.point, finish.point, paint);
   }
 }
 
@@ -86,13 +86,13 @@ class DisplayRectangleClass extends DisplayFigure {
 
   void drawing(Canvas canvas, Paint paint) {
     canvas.drawLine(
-        start.points, Offset(finish.points.dx, start.points.dy), paint);
+        start.point, Offset(finish.point.dx, start.point.dy), paint);
     canvas.drawLine(
-        start.points, Offset(start.points.dx, finish.points.dy), paint);
+        start.point, Offset(start.point.dx, finish.point.dy), paint);
     canvas.drawLine(
-        finish.points, Offset(finish.points.dx, start.points.dy), paint);
+        finish.point, Offset(finish.point.dx, start.point.dy), paint);
     canvas.drawLine(
-        finish.points, Offset(start.points.dx, finish.points.dy), paint);
+        finish.point, Offset(start.point.dx, finish.point.dy), paint);
   }
 }
 
@@ -103,26 +103,26 @@ class DisplayCircleClass extends DisplayFigure{
 
   void drawing(Canvas canvas, Paint paint){
 
-    canvas.drawCircle(start.points, distance(start, finish), paint);
+    canvas.drawCircle(start.point, distance(start, finish), paint);
   }    
 
-  double distance(DrawingPoints one, DrawingPoints two){
-    return sqrt(pow((two.points.dx - one.points.dx),2) + 
-      pow((two.points.dy - one.points.dy),2) );
+  double distance(DrawingPoint one, DrawingPoint two){
+    return sqrt(pow((two.point.dx - one.point.dx),2) + 
+      pow((two.point.dy - one.point.dy),2) );
   }
 
 }
 
 
 enum SelectedMode { StrokeWidth, Opacity, Color, Output }
-enum SelectedOutput { Draw, Line, Rectangle, Circle }
+enum DrawArtifactType { Draw, Line, Rectangle, Circle }
 enum Line { noPoints, onePoint, twoPoints }
 
 class DrawingLogic {
   Color selectedColor = Colors.black;
   Color pickerColor = Colors.black;
   double strokeWidth = 3.0;
-  List<DrawingPoints> points = List();
+  List<DrawingPoint> points = List();
   bool showBottomList = false;
   double opacity = 1.0;
   StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.butt : StrokeCap.round;
@@ -134,7 +134,7 @@ class DrawingLogic {
     Colors.amber,
     Colors.black
   ];
-  SelectedOutput output = SelectedOutput.Draw;
+  DrawArtifactType output = DrawArtifactType.Draw;
   Color toolBarColor = Colors.greenAccent;
   List<DisplayFigure> drawnFigures = List();
   DisplayFigure currentFigure = DisplayFigure();

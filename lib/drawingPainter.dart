@@ -16,10 +16,10 @@ class DrawingPainter extends CustomPainter {
       this.createImage = false,
       this.length,
       this.context});
-  List<DrawingPoints> pointsList;
+  List<DrawingPoint> pointsList;
   DisplayFigure currentFigure;
   List<Offset> offsetPoints = List();
-  SelectedOutput mode;
+  DrawArtifactType mode;
   List<DisplayFigure> drawnFigures;
   bool createImage;
   BuildContext context;
@@ -54,7 +54,9 @@ class DrawingPainter extends CustomPainter {
             Drawing(path: '${directory.path}/img_$length.png', title: "Item $length");
 
         try {
+          print("in try");
           if(Navigator.canPop(context)) {
+            print("can pop");
             Navigator.pop(context, newDrawing);
             }
         } catch (e) {
@@ -66,13 +68,13 @@ class DrawingPainter extends CustomPainter {
 
     for (int i = 0; i < pointsList.length - 1; i++) {
       if (pointsList[i] != null && pointsList[i + 1] != null) {
-        canvas.drawLine(pointsList[i].points, pointsList[i + 1].points,
+        canvas.drawLine(pointsList[i].point, pointsList[i + 1].point,
             pointsList[i].paint);
       } else if (pointsList[i] != null && pointsList[i + 1] == null) {
         offsetPoints.clear();
-        offsetPoints.add(pointsList[i].points);
+        offsetPoints.add(pointsList[i].point);
         offsetPoints.add(Offset(
-            pointsList[i].points.dx + 0.1, pointsList[i].points.dy + 0.1));
+            pointsList[i].point.dx + 0.1, pointsList[i].point.dy + 0.1));
         canvas.drawPoints(
             ui.PointMode.points, offsetPoints, pointsList[i].paint);
       }

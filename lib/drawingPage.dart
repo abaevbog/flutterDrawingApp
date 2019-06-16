@@ -1,73 +1,108 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import './drawingPainter.dart';
 import './drawingLogic.dart';
 
 class Draw extends StatefulWidget {
-  final int length;
+  int length;
   Draw(this.length);
   @override
   _DrawState createState() => _DrawState();
 }
 
-class _DrawState extends State<Draw> {
+class _DrawState extends State<Draw> with TickerProviderStateMixin {
+  AnimationController _controller;
   DrawingLogic logic = DrawingLogic();
+  bool showingOptions = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+  }
+
   Widget buildToolBar() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-            IconButton(
-                icon: Icon(Icons.save),
-                onPressed: () {
-                  setState(() {
-                    logic.willSave = true;
-                  });
-                }),
-            IconButton(
-                icon: Icon(Icons.clear),
-                onPressed: () {
-                  setState(() {
-                    logic.points.clear();
-                    logic.currentFigure.clear();
-                    logic.drawnFigures.clear();
-                  });
-                }),
-            IconButton(
-              icon: Icon(Icons.radio_button_unchecked),
-              onPressed: () {
-                setState(() {
-                  logic.output = SelectedOutput.Circle;
-                });
-              }),
-            IconButton(
-              icon: Icon(Icons.linear_scale),
-              onPressed: () {
-                setState(() {
-                  logic.output = SelectedOutput.Line;
-                });
-              }),
-            IconButton(
-              icon: Icon(Icons.crop_square),
-              onPressed: () {
-                setState(() {
-                  logic.output = SelectedOutput.Rectangle;
-                });
-              }),
-            IconButton(
-              icon: Icon(Icons.all_inclusive),
-              onPressed: () {
-                setState(() {
-                  logic.output = SelectedOutput.Draw;
-                });
-              }),
-          ] ,
+        IconButton(
+            icon: Icon(Icons.save),
+            onPressed: () {
+              setState(() {
+                logic.willSave = true;
+                //Navigator.of(context).pop();
+              });
+            }),
+        IconButton(
+            icon: Icon(Icons.clear),
+            onPressed: () {
+              setState(() {
+                logic.points.clear();
+                logic.currentFigure.clear();
+                logic.drawnFigures.clear();
+              });
+            }),
+        IconButton(
+            icon: Icon(Icons.expand_less),
+            onPressed: () {
+              setState(() {
+                showingOptions ? _controller.forward() : _controller.reverse();
+              });
+            }),
+      ],
     );
   }
 
+  Widget buildOptionsBar() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        IconButton(
+            icon: Icon(Icons.radio_button_unchecked),
+            onPressed: () {
+              setState(() {
+                logic.output = DrawArtifactType.Circle;
+              });
+            }),
+        IconButton(
+            icon: Icon(Icons.linear_scale),
+            onPressed: () {
+              setState(() {
+                logic.output = DrawArtifactType.Line;
+              });
+            }),
+        IconButton(
+            icon: Icon(Icons.crop_square),
+            onPressed: () {
+              setState(() {
+                logic.output = DrawArtifactType.Rectangle;
+              });
+            }),
+        IconButton(
+            icon: Icon(Icons.all_inclusive),
+            onPressed: () {
+              setState(() {
+                logic.output = DrawArtifactType.Draw;
+              });
+            }),
+      ],
+    );
+  }
+
+  Widget optionsWithAnimations() {
+    return FadeTransition(
+        opacity: CurvedAnimation(
+          curve: Interval(0, 1.0, curve: Curves.easeIn),
+          parent: _controller,
+        ),
+        child: buildOptionsBar());
+  }
 
   @override
   Widget build(BuildContext context) {
-    print(logic.output);
+    RenderBox renderBox = context.findRenderObject();
     return Scaffold(
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -82,6 +117,7 @@ class _DrawState extends State<Draw> {
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   buildToolBar(),
+                  optionsWithAnimations(),
                 ],
               ),
             )),
@@ -89,26 +125,25 @@ class _DrawState extends State<Draw> {
       body: GestureDetector(
         onPanUpdate: (details) {
           setState(() {
-            RenderBox renderBox = context.findRenderObject();
             switch (logic.output) {
-              case SelectedOutput.Draw:
-                logic.points.add(DrawingPoints(
-                    points: renderBox.globalToLocal(details.globalPosition),
+              case DrawArtifactType.Draw:
+                logic.points.add(DrawingPoint(
+                    point: renderBox.globalToLocal(details.globalPosition),
                     paint: DrawingLogic.defaultPaint));
                 break;
-              case SelectedOutput.Line:
-                logic.currentFigure.finish = (DrawingPoints(
-                    points: renderBox.globalToLocal(details.globalPosition),
+              case DrawArtifactType.Line:
+                logic.currentFigure.finish = (DrawingPoint(
+                    point: renderBox.globalToLocal(details.globalPosition),
                     paint: DrawingLogic.defaultPaint));
                 break;
-              case SelectedOutput.Rectangle:
-                logic.currentFigure.finish = (DrawingPoints(
-                    points: renderBox.globalToLocal(details.globalPosition),
+              case DrawArtifactType.Rectangle:
+                logic.currentFigure.finish = (DrawingPoint(
+                    point: renderBox.globalToLocal(details.globalPosition),
                     paint: DrawingLogic.defaultPaint));
                 break;
-              case SelectedOutput.Circle:
-                logic.currentFigure.finish = (DrawingPoints(
-                    points: renderBox.globalToLocal(details.globalPosition),
+              case DrawArtifactType.Circle:
+                logic.currentFigure.finish = (DrawingPoint(
+                    point: renderBox.globalToLocal(details.globalPosition),
                     paint: DrawingLogic.defaultPaint));
                 break;
             }
@@ -118,38 +153,38 @@ class _DrawState extends State<Draw> {
           setState(() {
             RenderBox renderBox = context.findRenderObject();
             switch (logic.output) {
-              case SelectedOutput.Draw:
-                logic.points.add(DrawingPoints(
-                    points: renderBox.globalToLocal(details.globalPosition),
+              case DrawArtifactType.Draw:
+                logic.points.add(DrawingPoint(
+                    point: renderBox.globalToLocal(details.globalPosition),
                     paint: DrawingLogic.defaultPaint));
                 break;
-              case SelectedOutput.Line:
+              case DrawArtifactType.Line:
                 logic.currentFigure = DisplayLineClass(
-                    start: DrawingPoints(
-                        points: renderBox.globalToLocal(details.globalPosition),
+                    start: DrawingPoint(
+                        point: renderBox.globalToLocal(details.globalPosition),
                         paint: DrawingLogic.defaultPaint),
-                    figure: SelectedOutput.Line);
+                    figure: DrawArtifactType.Line);
                 break;
-              case SelectedOutput.Rectangle:
+              case DrawArtifactType.Rectangle:
                 logic.currentFigure = DisplayRectangleClass(
-                    start: DrawingPoints(
-                        points: renderBox.globalToLocal(details.globalPosition),
+                    start: DrawingPoint(
+                        point: renderBox.globalToLocal(details.globalPosition),
                         paint: DrawingLogic.defaultPaint),
-                    figure: SelectedOutput.Rectangle);
+                    figure: DrawArtifactType.Rectangle);
                 break;
-              case SelectedOutput.Circle:
+              case DrawArtifactType.Circle:
                 logic.currentFigure = DisplayCircleClass(
-                    start: DrawingPoints(
-                        points: renderBox.globalToLocal(details.globalPosition),
+                    start: DrawingPoint(
+                        point: renderBox.globalToLocal(details.globalPosition),
                         paint: DrawingLogic.defaultPaint),
-                    figure: SelectedOutput.Circle);
+                    figure: DrawArtifactType.Circle);
                 break;
             }
           });
         },
         onPanEnd: (details) {
           setState(() {
-            if (logic.output == SelectedOutput.Draw) {
+            if (logic.output == DrawArtifactType.Draw) {
               logic.points.add(null);
             } else if (logic.currentFigure.finish != null) {
               logic.drawnFigures.add(DisplayFigure.from(logic.currentFigure));
@@ -164,9 +199,7 @@ class _DrawState extends State<Draw> {
               mode: logic.output,
               drawnFigures: logic.drawnFigures,
               currentFigure: logic.currentFigure,
-              createImage: logic.willSave,
-              length: widget.length,
-              context: context),
+              createImage: logic.willSave),
         ),
       ),
     );
