@@ -52,9 +52,10 @@ class DrawingPainter extends CustomPainter {
         int count = DrawingLogic.count;
         Drawing newDrawing =
             Drawing(path: '${directory.path}/img_$length.png', title: "Item $length");
-
+        
         try {
           print("in try");
+          
           if(Navigator.canPop(context)) {
             print("can pop");
             Navigator.pop(context, newDrawing);

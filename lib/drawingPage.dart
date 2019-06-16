@@ -32,7 +32,6 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
             onPressed: () {
               setState(() {
                 logic.willSave = true;
-                //Navigator.of(context).pop();
               });
             }),
         IconButton(
@@ -47,46 +46,48 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
         IconButton(
             icon: Icon(Icons.expand_less),
             onPressed: () {
+              print('show or hide');
               setState(() {
-                showingOptions ? _controller.forward() : _controller.reverse();
+                //showingOptions ? _controller.forward() : _controller.reverse();
+                _controller.forward();
               });
             }),
       ],
     );
   }
 
+  Widget buildFlatButton(Icon icon,String tag, {Function action}) {
+    return Container(
+      width: 55,
+      height: 70,
+      //alignment: FractionalOffset.topCenter,
+      child: ScaleTransition(
+        scale: CurvedAnimation(
+            parent: _controller,
+            curve: Interval(0.0, 1.0, curve: Curves.easeIn)),
+        child: FloatingActionButton(
+            heroTag: tag,
+            child: icon,
+            onPressed: () {
+              setState(action
+              );
+            }),
+      ),
+    );
+  }
+
   Widget buildOptionsBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        IconButton(
-            icon: Icon(Icons.radio_button_unchecked),
-            onPressed: () {
-              setState(() {
-                logic.output = DrawArtifactType.Circle;
-              });
-            }),
-        IconButton(
-            icon: Icon(Icons.linear_scale),
-            onPressed: () {
-              setState(() {
-                logic.output = DrawArtifactType.Line;
-              });
-            }),
-        IconButton(
-            icon: Icon(Icons.crop_square),
-            onPressed: () {
-              setState(() {
-                logic.output = DrawArtifactType.Rectangle;
-              });
-            }),
-        IconButton(
-            icon: Icon(Icons.all_inclusive),
-            onPressed: () {
-              setState(() {
-                logic.output = DrawArtifactType.Draw;
-              });
-            }),
+        buildFlatButton(Icon(Icons.radio_button_unchecked), 'circle',
+            action: ()=> logic.output = DrawArtifactType.Circle),
+        buildFlatButton(Icon(Icons.linear_scale),'line',
+            action: () => logic.output = DrawArtifactType.Line),
+        buildFlatButton(Icon(Icons.crop_square),'rect',
+            action: ()=> logic.output = DrawArtifactType.Rectangle),
+        buildFlatButton(Icon(Icons.all_inclusive),'draw',
+            action: ()=> logic.output = DrawArtifactType.Draw)
       ],
     );
   }
@@ -106,21 +107,24 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
     return Scaffold(
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Container(
-            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50.0),
-                color: logic.toolBarColor),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  buildToolBar(),
-                  optionsWithAnimations(),
-                ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Container(
+              child: buildOptionsBar(),
+            ),
+            Container(
+              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(50.0),
+                  color: logic.toolBarColor),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: buildToolBar(),
               ),
-            )),
+            ),
+          ],
+        ),
       ),
       body: GestureDetector(
         onPanUpdate: (details) {
@@ -199,7 +203,9 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
               mode: logic.output,
               drawnFigures: logic.drawnFigures,
               currentFigure: logic.currentFigure,
-              createImage: logic.willSave),
+              createImage: logic.willSave,
+              length: widget.length,
+              context: context),
         ),
       ),
     );
