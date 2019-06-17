@@ -19,7 +19,8 @@ class DisplayFigure {
   factory DisplayFigure.from(DisplayFigure other) {
     switch (other.figure) {
       case DrawArtifactType.Draw:
-        throw ("Constructor called on non-figure");
+        DisplaySkribblesClass figure = (other as DisplaySkribblesClass);
+        return DisplaySkribblesClass(points:figure.points,figure: other.figure);
         break;
       case DrawArtifactType.Line:
         return DisplayLineClass(
@@ -50,7 +51,8 @@ class DisplayFigure {
   void draw(Canvas canvas, Paint paint) {
     switch (figure) {
       case DrawArtifactType.Draw:
-        throw ("Draw method called on non-figure");
+        DisplaySkribblesClass skribbles = (this as DisplaySkribblesClass);
+        skribbles.drawing(canvas, paint);
         break;
       case DrawArtifactType.Line:
         DisplayLineClass line = (this as DisplayLineClass);
@@ -113,6 +115,22 @@ class DisplayCircleClass extends DisplayFigure{
 
 }
 
+class DisplaySkribblesClass extends DisplayFigure{
+  List<DrawingPoint> points;
+
+  DisplaySkribblesClass({this.points, figure})
+    : super(start: points[0], finish: points.last, figure: figure); 
+
+    void drawing(Canvas canvas, Paint paint){
+      List<Offset> lst = [];
+      for(int i = 0; i < points.length;i++){
+        lst.add(points[i].point);
+      }
+      canvas.drawPoints(PointMode.polygon, lst, paint);
+      
+    }
+}
+
 
 enum SelectedMode { StrokeWidth, Opacity, Color, Output }
 enum DrawArtifactType { Draw, Line, Rectangle, Circle }
@@ -122,7 +140,6 @@ class DrawingLogic {
   Color selectedColor = Colors.black;
   Color pickerColor = Colors.black;
   double strokeWidth = 3.0;
-  List<DrawingPoint> points = List();
   bool showBottomList = false;
   double opacity = 1.0;
   StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.butt : StrokeCap.round;
@@ -144,6 +161,14 @@ class DrawingLogic {
   static get count{
     itemCount+=1;
     return itemCount;
+  }
+
+  void undo(){
+    try{
+      drawnFigures.removeLast();
+    } catch(e){
+
+    }
   }
 
 }

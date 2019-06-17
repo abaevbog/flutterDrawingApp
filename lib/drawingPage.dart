@@ -32,7 +32,9 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
     if (showingOptions) {
       _controllerFigure.reverse();
     }
-    return showingColors ? _controllerColor.reverse() : _controllerColor.forward();
+    print("other");
+    print(showingColors);
+    return !showingColors ? _controllerColor.reverse() : _controllerColor.forward();
   }
 
   Widget buildToolBar() {
@@ -43,9 +45,11 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
       children: <Widget>[
         buildFlatButton(Icon(Icons.save), 'save', () => logic.willSave = true),
         buildFlatButton(Icon(Icons.clear), 'clear', () {
-          logic.points.clear();
           logic.currentFigure.clear();
           logic.drawnFigures.clear();
+        }),
+        buildFlatButton(Icon(Icons.undo), 'undo', () {
+          logic.undo();
         }),
         buildFlatButton(Icon(Icons.expand_less), 'options', () {
           if (showingColors) {
@@ -62,6 +66,7 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
             showingOptions = false;
           }
           showingColors = !showingColors;
+          print("in state");
           print(showingColors);
         }, other: other)
       ],
@@ -79,6 +84,7 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
           child: icon,
           onPressed: () {
             if (other != null) {
+              print("Showing colors: $showingColors");
               if (showingColors){
 
               other().then(
@@ -185,7 +191,7 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
           setState(() {
             switch (logic.output) {
               case DrawArtifactType.Draw:
-                logic.points.add(DrawingPoint(
+                (logic.currentFigure as DisplaySkribblesClass).points.add(DrawingPoint(
                     point: renderBox.globalToLocal(details.globalPosition),
                     paint: DrawingLogic.defaultPaint));
                 break;
@@ -212,9 +218,11 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
             RenderBox renderBox = context.findRenderObject();
             switch (logic.output) {
               case DrawArtifactType.Draw:
-                logic.points.add(DrawingPoint(
-                    point: renderBox.globalToLocal(details.globalPosition),
-                    paint: DrawingLogic.defaultPaint));
+                logic.currentFigure = DisplaySkribblesClass(
+                    points: [DrawingPoint(
+                        point: renderBox.globalToLocal(details.globalPosition),
+                        paint: DrawingLogic.defaultPaint)],
+                    figure: DrawArtifactType.Draw);
                 break;
               case DrawArtifactType.Line:
                 logic.currentFigure = DisplayLineClass(
@@ -242,9 +250,7 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
         },
         onPanEnd: (details) {
           setState(() {
-            if (logic.output == DrawArtifactType.Draw) {
-              logic.points.add(null);
-            } else if (logic.currentFigure.finish != null) {
+            if (logic.currentFigure.finish != null) {
               logic.drawnFigures.add(DisplayFigure.from(logic.currentFigure));
               logic.currentFigure.clear();
             }
@@ -253,8 +259,6 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
         child: CustomPaint(
           size: Size.infinite,
           painter: DrawingPainter(
-              pointsList: logic.points,
-              mode: logic.output,
               drawnFigures: logic.drawnFigures,
               currentFigure: logic.currentFigure,
               createImage: logic.willSave,

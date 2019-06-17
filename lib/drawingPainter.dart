@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './drawingLogic.dart';
@@ -9,17 +10,12 @@ import './main.dart';
 
 class DrawingPainter extends CustomPainter {
   DrawingPainter(
-      {this.pointsList,
-      this.mode,
-      this.drawnFigures,
+      {this.drawnFigures,
       this.currentFigure,
       this.createImage = false,
       this.length,
       this.context});
-  List<DrawingPoint> pointsList;
   DisplayFigure currentFigure;
-  List<Offset> offsetPoints = List();
-  DrawArtifactType mode;
   List<DisplayFigure> drawnFigures;
   bool createImage;
   BuildContext context;
@@ -29,7 +25,7 @@ class DrawingPainter extends CustomPainter {
     ui.PictureRecorder recorder = ui.PictureRecorder();
     Canvas canvas = Canvas(recorder);
     DrawingPainter painter =
-        DrawingPainter(pointsList: pointsList, drawnFigures: drawnFigures);
+        DrawingPainter(drawnFigures: drawnFigures);
     var size = MediaQueryData.fromWindow(ui.window).size;
     painter.paint(canvas, size);
     final res = await recorder
@@ -42,8 +38,6 @@ class DrawingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) async {
     if (createImage) {
       final directory = await getApplicationDocumentsDirectory();
-     // if (FileSystemEntity.typeSync('${directory.path}/new_img.png') ==
-       //   FileSystemEntityType.notFound) {
         ui.Image pic = await save;
         final byteData = await pic.toByteData(format: ui.ImageByteFormat.png);
         final pngBytes = byteData.buffer.asUint8List();
@@ -63,22 +57,7 @@ class DrawingPainter extends CustomPainter {
         } catch (e) {
           print("Exception: future completed");
         }
-      //}
       return;
-    }
-
-    for (int i = 0; i < pointsList.length - 1; i++) {
-      if (pointsList[i] != null && pointsList[i + 1] != null) {
-        canvas.drawLine(pointsList[i].point, pointsList[i + 1].point,
-            pointsList[i].paint);
-      } else if (pointsList[i] != null && pointsList[i + 1] == null) {
-        offsetPoints.clear();
-        offsetPoints.add(pointsList[i].point);
-        offsetPoints.add(Offset(
-            pointsList[i].point.dx + 0.1, pointsList[i].point.dy + 0.1));
-        canvas.drawPoints(
-            ui.PointMode.points, offsetPoints, pointsList[i].paint);
-      }
     }
     for (int i = 0; i < drawnFigures.length; i++) {
       drawnFigures[i].draw(canvas, DrawingLogic.defaultPaint);
