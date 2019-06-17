@@ -127,13 +127,6 @@ class DrawingLogic {
   double opacity = 1.0;
   StrokeCap strokeCap = (Platform.isAndroid) ? StrokeCap.butt : StrokeCap.round;
   SelectedMode selectedMode = SelectedMode.StrokeWidth;
-  List<Color> colors = [
-    Colors.red,
-    Colors.green,
-    Colors.blue,
-    Colors.amber,
-    Colors.black
-  ];
   DrawArtifactType output = DrawArtifactType.Draw;
   Color toolBarColor = Colors.greenAccent;
   List<DisplayFigure> drawnFigures = List();
