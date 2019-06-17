@@ -192,23 +192,19 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
             switch (logic.output) {
               case DrawArtifactType.Draw:
                 (logic.currentFigure as DisplaySkribblesClass).points.add(DrawingPoint(
-                    point: renderBox.globalToLocal(details.globalPosition),
-                    paint: DrawingLogic.defaultPaint));
+                    point: renderBox.globalToLocal(details.globalPosition)));
                 break;
               case DrawArtifactType.Line:
                 logic.currentFigure.finish = (DrawingPoint(
-                    point: renderBox.globalToLocal(details.globalPosition),
-                    paint: DrawingLogic.defaultPaint));
+                    point: renderBox.globalToLocal(details.globalPosition)));
                 break;
               case DrawArtifactType.Rectangle:
                 logic.currentFigure.finish = (DrawingPoint(
-                    point: renderBox.globalToLocal(details.globalPosition),
-                    paint: DrawingLogic.defaultPaint));
+                    point: renderBox.globalToLocal(details.globalPosition)));
                 break;
               case DrawArtifactType.Circle:
                 logic.currentFigure.finish = (DrawingPoint(
-                    point: renderBox.globalToLocal(details.globalPosition),
-                    paint: DrawingLogic.defaultPaint));
+                    point: renderBox.globalToLocal(details.globalPosition)));
                 break;
             }
           });
@@ -219,30 +215,34 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
             switch (logic.output) {
               case DrawArtifactType.Draw:
                 logic.currentFigure = DisplaySkribblesClass(
+                    paint: logic.selectedPaint(),
                     points: [DrawingPoint(
                         point: renderBox.globalToLocal(details.globalPosition),
-                        paint: DrawingLogic.defaultPaint)],
+                        )],
                     figure: DrawArtifactType.Draw);
                 break;
               case DrawArtifactType.Line:
                 logic.currentFigure = DisplayLineClass(
+                  paint: logic.selectedPaint(),
                     start: DrawingPoint(
                         point: renderBox.globalToLocal(details.globalPosition),
-                        paint: DrawingLogic.defaultPaint),
+                         ),
                     figure: DrawArtifactType.Line);
                 break;
               case DrawArtifactType.Rectangle:
                 logic.currentFigure = DisplayRectangleClass(
+                  paint: logic.selectedPaint(),
                     start: DrawingPoint(
                         point: renderBox.globalToLocal(details.globalPosition),
-                        paint: DrawingLogic.defaultPaint),
+                        ),
                     figure: DrawArtifactType.Rectangle);
                 break;
               case DrawArtifactType.Circle:
                 logic.currentFigure = DisplayCircleClass(
+                  paint: logic.selectedPaint(),
                     start: DrawingPoint(
                         point: renderBox.globalToLocal(details.globalPosition),
-                        paint: DrawingLogic.defaultPaint),
+                        ),
                     figure: DrawArtifactType.Circle);
                 break;
             }

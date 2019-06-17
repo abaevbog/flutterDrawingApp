@@ -5,34 +5,34 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class DrawingPoint {
-  Paint paint;
   Offset point;
   DrawArtifactType output;
-  DrawingPoint({this.point, this.paint});
+  DrawingPoint({this.point});
 }
 
 class DisplayFigure {
+  Paint paint;
   DrawArtifactType figure;
   DrawingPoint start;
   DrawingPoint finish;
-  DisplayFigure({this.start, this.finish, this.figure});
+  DisplayFigure({this.start, this.finish, this.figure, this.paint});
   factory DisplayFigure.from(DisplayFigure other) {
     switch (other.figure) {
       case DrawArtifactType.Draw:
         DisplaySkribblesClass figure = (other as DisplaySkribblesClass);
-        return DisplaySkribblesClass(points:figure.points,figure: other.figure);
+        return DisplaySkribblesClass(points:figure.points,figure: other.figure, paint: other.paint);
         break;
       case DrawArtifactType.Line:
         return DisplayLineClass(
-            start: other.start, finish: other.finish, figure: other.figure);
+            start: other.start, finish: other.finish, figure: other.figure,paint: other.paint);
         break;
       case DrawArtifactType.Rectangle:
         return DisplayRectangleClass(
-            start: other.start, finish: other.finish, figure: other.figure);
+            start: other.start, finish: other.finish, figure: other.figure,paint: other.paint);
         break;
       case DrawArtifactType.Circle:
         return DisplayCircleClass(
-            start: other.start, finish: other.finish, figure: other.figure);
+            start: other.start, finish: other.finish, figure: other.figure,paint: other.paint);
         break;
     }
     return null;
@@ -48,23 +48,23 @@ class DisplayFigure {
     figure = newFigure;
   }
 
-  void draw(Canvas canvas, Paint paint) {
+  void draw(Canvas canvas) {
     switch (figure) {
       case DrawArtifactType.Draw:
         DisplaySkribblesClass skribbles = (this as DisplaySkribblesClass);
-        skribbles.drawing(canvas, paint);
+        skribbles.drawing(canvas);
         break;
       case DrawArtifactType.Line:
         DisplayLineClass line = (this as DisplayLineClass);
-        line.drawing(canvas, paint);
+        line.drawing(canvas);
         break;
       case DrawArtifactType.Rectangle:
         DisplayRectangleClass rect = (this as DisplayRectangleClass);
-        rect.drawing(canvas, paint);
+        rect.drawing(canvas);
         break;
       case DrawArtifactType.Circle:
         DisplayCircleClass circle = (this as DisplayCircleClass);
-        circle.drawing(canvas, paint);
+        circle.drawing(canvas);
         break;
     }
   }
@@ -72,10 +72,10 @@ class DisplayFigure {
 
 class DisplayLineClass extends DisplayFigure {
   DisplayLineClass(
-      {DrawingPoint start, DrawingPoint finish, DrawArtifactType figure})
-      : super(start: start, finish: finish, figure: figure);
+      {DrawingPoint start, DrawingPoint finish, DrawArtifactType figure, Paint paint})
+      : super(start: start, finish: finish, figure: figure, paint:paint);
 
-  void drawing(Canvas canvas, Paint paint) {
+  void drawing(Canvas canvas) {
     canvas.drawCircle(start.point, 3, paint);
     canvas.drawCircle(finish.point, 3, paint);
     canvas.drawLine(start.point, finish.point, paint);
@@ -83,10 +83,10 @@ class DisplayLineClass extends DisplayFigure {
 }
 
 class DisplayRectangleClass extends DisplayFigure {
-  DisplayRectangleClass({start, finish, figure})
-      : super(start: start, finish: finish, figure: figure);
+  DisplayRectangleClass({start, finish, figure, Paint paint})
+      : super(start: start, finish: finish, figure: figure, paint:paint);
 
-  void drawing(Canvas canvas, Paint paint) {
+  void drawing(Canvas canvas) {
     canvas.drawLine(
         start.point, Offset(finish.point.dx, start.point.dy), paint);
     canvas.drawLine(
@@ -100,10 +100,10 @@ class DisplayRectangleClass extends DisplayFigure {
 
 
 class DisplayCircleClass extends DisplayFigure{
-  DisplayCircleClass({start, finish, figure})
-      : super(start: start, finish: finish, figure: figure);  
+  DisplayCircleClass({start, finish, figure, Paint paint})
+      : super(start: start, finish: finish, figure: figure, paint:paint);  
 
-  void drawing(Canvas canvas, Paint paint){
+  void drawing(Canvas canvas){
 
     canvas.drawCircle(start.point, distance(start, finish), paint);
   }    
@@ -118,10 +118,10 @@ class DisplayCircleClass extends DisplayFigure{
 class DisplaySkribblesClass extends DisplayFigure{
   List<DrawingPoint> points;
 
-  DisplaySkribblesClass({this.points, figure})
-    : super(start: points[0], finish: points.last, figure: figure); 
+  DisplaySkribblesClass({this.points, figure, Paint paint})
+    : super(start: points[0], finish: points.last, figure: figure, paint: paint); 
 
-    void drawing(Canvas canvas, Paint paint){
+    void drawing(Canvas canvas){
       List<Offset> lst = [];
       for(int i = 0; i < points.length;i++){
         lst.add(points[i].point);
@@ -138,7 +138,6 @@ enum Line { noPoints, onePoint, twoPoints }
 
 class DrawingLogic {
   Color selectedColor = Colors.black;
-  Color pickerColor = Colors.black;
   double strokeWidth = 3.0;
   bool showBottomList = false;
   double opacity = 1.0;
@@ -156,6 +155,14 @@ class DrawingLogic {
     ..isAntiAlias = true
     ..color = Colors.black
     ..strokeWidth = 3;
+
+  Paint selectedPaint() {
+    print(selectedColor);
+    return Paint()
+      ..style = PaintingStyle.stroke
+      ..color = selectedColor
+      ..strokeWidth = 3;
+  }
 
   static int itemCount = 0;
   static get count{

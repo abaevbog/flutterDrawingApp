@@ -43,7 +43,6 @@ class DrawingPainter extends CustomPainter {
         final pngBytes = byteData.buffer.asUint8List();
         final file = File('${directory.path}/img_$length.png');
         file.writeAsBytesSync(pngBytes);
-        int count = DrawingLogic.count;
         Drawing newDrawing =
             Drawing(path: '${directory.path}/img_$length.png', title: "Item $length");
         
@@ -60,11 +59,11 @@ class DrawingPainter extends CustomPainter {
       return;
     }
     for (int i = 0; i < drawnFigures.length; i++) {
-      drawnFigures[i].draw(canvas, DrawingLogic.defaultPaint);
+      drawnFigures[i].draw(canvas);
     }
     if (currentFigure != null) {
       if (currentFigure.start != null && currentFigure.finish != null) {
-        currentFigure.draw(canvas, DrawingLogic.defaultPaint);
+        currentFigure.draw(canvas);
       }
     }
   }
