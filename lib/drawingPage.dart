@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import './drawingPainter.dart';
 import './drawingLogic.dart';
+import 'package:flutter/scheduler.dart';
 
 class Draw extends StatefulWidget {
   int length;
@@ -18,24 +19,31 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
   DrawingLogic logic = DrawingLogic();
   bool showingOptions = false;
   bool showingColors = false;
+  bool visibleColors = false;
+  bool show = true;
+  @override
+  void dispose() {
+    _controllerFigure.dispose();
+    _controllerColor.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
+    print("init");
     _controllerFigure =
         AnimationController(vsync: this, duration: Duration(milliseconds: 300));
     _controllerColor =
         AnimationController(vsync: this, duration: Duration(milliseconds: 300));
   }
 
-  TickerFuture other() {
+  /*TickerFuture other() {
     if (showingOptions) {
       _controllerFigure.reverse();
     }
-    print("other");
-    print(showingColors);
     return !showingColors ? _controllerColor.reverse() : _controllerColor.forward();
-  }
+  }*/
 
   Widget buildToolBar() {
     return Row(
@@ -61,14 +69,23 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
               : _controllerFigure.forward();
           showingOptions = !showingOptions;
         }),
-        buildFlatButton(Icon(Icons.color_lens), 'color', () {
-          if (showingOptions) {
-            showingOptions = false;
-          }
-          showingColors = !showingColors;
-          print("in state");
-          print(showingColors);
-        }, other: other)
+        buildFlatButton(
+          Icon(Icons.color_lens),
+          'color',
+          () {
+            if (showingOptions) {
+              showingOptions = false;
+            }
+            if (showingColors){
+              visibleColors = false;
+              show = false;
+            } else {
+              showingColors = true;
+            }
+            //visibleColors = !visibleColors;
+            //builtAfterShowingColorsChange = !builtAfterShowingColorsChange;
+          },
+        )
       ],
     );
   }
@@ -83,7 +100,8 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
           heroTag: tag,
           child: icon,
           onPressed: () {
-            if (other != null) {
+            setState(setStateAction);
+            /*if (other != null) {
               print("Showing colors: $showingColors");
               if (showingColors){
 
@@ -98,7 +116,7 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
             } else {
               print("A");
               setState(setStateAction);
-            }
+            }*/
           }),
     );
   }
@@ -113,6 +131,28 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
         scale: CurvedAnimation(
             parent: color ? _controllerColor : _controllerFigure,
             curve: Interval(0.0, 1.0, curve: Curves.easeIn)),
+        child: FloatingActionButton(
+            heroTag: tag,
+            child: icon,
+            onPressed: () {
+              setState(() {
+                action();
+              });
+            }),
+      ),
+    );
+  }
+
+  Widget buildFlatButtonOpacity(Icon icon, String tag, Function action,
+      {bool color = false}) {
+    return Container(
+      width: 55,
+      height: 70,
+      //alignment: FractionalOffset.topCenter,
+      child: AnimatedOpacity(
+        opacity: visibleColors ? 1.0 : 0.0,
+        curve: Curves.linear,
+        duration: Duration(milliseconds: 1000),
         child: FloatingActionButton(
             heroTag: tag,
             child: icon,
@@ -150,28 +190,48 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        buildFlatButtonAnimated(Icon(Icons.format_paint, color: Colors.red),
+        buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.red),
             'color_red', () => logic.selectedColor = Colors.red,
             color: true),
-        buildFlatButtonAnimated(Icon(Icons.format_paint, color: Colors.green),
+        buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.green),
             'color_green', () => logic.selectedColor = Colors.green,
             color: true),
-        buildFlatButtonAnimated(Icon(Icons.format_paint, color: Colors.blue),
+        buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.blue),
             'color_blue', () => logic.selectedColor = Colors.blue,
             color: true),
-        buildFlatButtonAnimated(Icon(Icons.format_paint, color: Colors.yellow),
+        buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.yellow),
             'color_yellow', () => logic.selectedColor = Colors.yellow,
             color: true),
-        buildFlatButtonAnimated(Icon(Icons.format_paint, color: Colors.black),
+        buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.black),
             'color_black', () => logic.selectedColor = Colors.black,
             color: true)
       ],
     );
   }
 
+  Widget colorSelectionWidget() {
+    if (showingColors) {
+      return buildColorSelection();
+    } else {
+      return SizedBox();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     RenderBox renderBox = context.findRenderObject();
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+          print("x");
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (!visibleColors && showingColors && show) {
+          print('asd');
+          setState(() {
+            visibleColors = !visibleColors;
+          });
+        }
+      });
+    }
     return Scaffold(
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -181,7 +241,7 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
             buildOptionsBar(),
-            showingColors ? buildColorSelection() : SizedBox(),
+            colorSelectionWidget(),
             buildToolBar(),
           ],
         ),
@@ -191,8 +251,10 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
           setState(() {
             switch (logic.output) {
               case DrawArtifactType.Draw:
-                (logic.currentFigure as DisplaySkribblesClass).points.add(DrawingPoint(
-                    point: renderBox.globalToLocal(details.globalPosition)));
+                (logic.currentFigure as DisplaySkribblesClass).points.add(
+                    DrawingPoint(
+                        point:
+                            renderBox.globalToLocal(details.globalPosition)));
                 break;
               case DrawArtifactType.Line:
                 logic.currentFigure.finish = (DrawingPoint(
@@ -216,33 +278,35 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
               case DrawArtifactType.Draw:
                 logic.currentFigure = DisplaySkribblesClass(
                     paint: logic.selectedPaint(),
-                    points: [DrawingPoint(
+                    points: [
+                      DrawingPoint(
                         point: renderBox.globalToLocal(details.globalPosition),
-                        )],
+                      )
+                    ],
                     figure: DrawArtifactType.Draw);
                 break;
               case DrawArtifactType.Line:
                 logic.currentFigure = DisplayLineClass(
-                  paint: logic.selectedPaint(),
+                    paint: logic.selectedPaint(),
                     start: DrawingPoint(
-                        point: renderBox.globalToLocal(details.globalPosition),
-                         ),
+                      point: renderBox.globalToLocal(details.globalPosition),
+                    ),
                     figure: DrawArtifactType.Line);
                 break;
               case DrawArtifactType.Rectangle:
                 logic.currentFigure = DisplayRectangleClass(
-                  paint: logic.selectedPaint(),
+                    paint: logic.selectedPaint(),
                     start: DrawingPoint(
-                        point: renderBox.globalToLocal(details.globalPosition),
-                        ),
+                      point: renderBox.globalToLocal(details.globalPosition),
+                    ),
                     figure: DrawArtifactType.Rectangle);
                 break;
               case DrawArtifactType.Circle:
                 logic.currentFigure = DisplayCircleClass(
-                  paint: logic.selectedPaint(),
+                    paint: logic.selectedPaint(),
                     start: DrawingPoint(
-                        point: renderBox.globalToLocal(details.globalPosition),
-                        ),
+                      point: renderBox.globalToLocal(details.globalPosition),
+                    ),
                     figure: DrawArtifactType.Circle);
                 break;
             }

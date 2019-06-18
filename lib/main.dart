@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import './drawingPage.dart';
 
+import 'package:flutter/rendering.dart';
+
 class Drawing {
   String path;
   String title;
@@ -9,7 +11,10 @@ class Drawing {
   Drawing({this.path, this.title});
 }
 
-void main() => runApp(MyApp());
+void main() {
+  debugPaintSizeEnabled=true;
+  runApp(MyApp());
+  }
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
