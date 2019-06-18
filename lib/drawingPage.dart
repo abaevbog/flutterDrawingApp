@@ -38,12 +38,6 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
         AnimationController(vsync: this, duration: Duration(milliseconds: 300));
   }
 
-  /*TickerFuture other() {
-    if (showingOptions) {
-      _controllerFigure.reverse();
-    }
-    return !showingColors ? _controllerColor.reverse() : _controllerColor.forward();
-  }*/
 
   Widget buildToolBar() {
     return Row(
@@ -76,14 +70,17 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
             if (showingOptions) {
               showingOptions = false;
             }
-            if (showingColors){
-              visibleColors = false;
-              show = false;
-            } else {
-              showingColors = true;
+            if (showingColors && !visibleColors && !show){
+              show = true;
+              visibleColors = true;
+            } else{
+              if (showingColors){
+                visibleColors = false;
+                show = false;
+              } else {
+                showingColors = true;
+              }
             }
-            //visibleColors = !visibleColors;
-            //builtAfterShowingColorsChange = !builtAfterShowingColorsChange;
           },
         )
       ],
@@ -101,22 +98,7 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
           child: icon,
           onPressed: () {
             setState(setStateAction);
-            /*if (other != null) {
-              print("Showing colors: $showingColors");
-              if (showingColors){
 
-              other().then(
-                (_)=>setState(setStateAction)
-              );
-              } else {
-                setState(setStateAction);
-                other();
-              }
-              //setState(setStateAction);
-            } else {
-              print("A");
-              setState(setStateAction);
-            }*/
           }),
     );
   }
