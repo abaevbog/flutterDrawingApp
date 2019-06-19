@@ -21,6 +21,7 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
   bool showingColors = false;
   bool visibleColors = false;
   bool show = true;
+  bool hide = false;
   @override
   void dispose() {
     _controllerFigure.dispose();
@@ -31,7 +32,6 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    print("init");
     _controllerFigure =
         AnimationController(vsync: this, duration: Duration(milliseconds: 300));
     _controllerColor =
@@ -55,7 +55,6 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
         }),
         buildFlatButton(Icon(Icons.expand_less), 'options', () {
           if (showingColors) {
-            _controllerColor.reverse();
             showingColors = false;
           }
           showingOptions
@@ -70,16 +69,12 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
             if (showingOptions) {
               showingOptions = false;
             }
-            if (showingColors && !visibleColors && !show){
+            if (!showingColors){
+              showingColors = true;
               show = true;
-              visibleColors = true;
             } else{
-              if (showingColors){
-                visibleColors = false;
-                show = false;
-              } else {
-                showingColors = true;
-              }
+              visibleColors = false;
+              hide= true;
             }
           },
         )
@@ -126,15 +121,15 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
   }
 
   Widget buildFlatButtonOpacity(Icon icon, String tag, Function action,
-      {bool color = false}) {
+      bool condition) {
     return Container(
       width: 55,
       height: 70,
       //alignment: FractionalOffset.topCenter,
       child: AnimatedOpacity(
-        opacity: visibleColors ? 1.0 : 0.0,
+        opacity: condition ? 1.0 : 0.0,
         curve: Curves.linear,
-        duration: Duration(milliseconds: 1000),
+        duration: Duration(milliseconds: 400),
         child: FloatingActionButton(
             heroTag: tag,
             child: icon,
@@ -151,19 +146,19 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        buildFlatButtonAnimated(
+        buildFlatButtonOpacity(
             Icon(
               Icons.radio_button_unchecked,
               semanticLabel: "circle",
             ),
             'circle',
-            () => logic.output = DrawArtifactType.Circle),
-        buildFlatButtonAnimated(Icon(Icons.border_color), 'line',
-            () => logic.output = DrawArtifactType.Line),
-        buildFlatButtonAnimated(Icon(Icons.crop_square), 'rect',
-            () => logic.output = DrawArtifactType.Rectangle),
-        buildFlatButtonAnimated(Icon(Icons.create), 'draw',
-            () => logic.output = DrawArtifactType.Draw)
+            () => logic.output = DrawArtifactType.Circle,showingOptions),
+        buildFlatButtonOpacity(Icon(Icons.border_color), 'line',
+            () => logic.output = DrawArtifactType.Line, showingOptions),
+        buildFlatButtonOpacity(Icon(Icons.crop_square), 'rect',
+            () => logic.output = DrawArtifactType.Rectangle,showingOptions),
+        buildFlatButtonOpacity(Icon(Icons.create), 'draw',
+            () => logic.output = DrawArtifactType.Draw,showingOptions)
       ],
     );
   }
@@ -174,19 +169,19 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
       children: <Widget>[
         buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.red),
             'color_red', () => logic.selectedColor = Colors.red,
-            color: true),
+            visibleColors),
         buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.green),
             'color_green', () => logic.selectedColor = Colors.green,
-            color: true),
+            visibleColors),
         buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.blue),
             'color_blue', () => logic.selectedColor = Colors.blue,
-            color: true),
+            visibleColors),
         buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.yellow),
             'color_yellow', () => logic.selectedColor = Colors.yellow,
-            color: true),
+            visibleColors),
         buildFlatButtonOpacity(Icon(Icons.format_paint, color: Colors.black),
             'color_black', () => logic.selectedColor = Colors.black,
-            color: true)
+            visibleColors)
       ],
     );
   }
@@ -204,14 +199,19 @@ class _DrawState extends State<Draw> with TickerProviderStateMixin {
     RenderBox renderBox = context.findRenderObject();
     if (SchedulerBinding.instance.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
-          print("x");
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (!visibleColors && showingColors && show) {
-          print('asd');
+        if (show && showingColors) {
           setState(() {
-            visibleColors = !visibleColors;
-          });
-        }
+            visibleColors = true;
+            show = false;
+             });
+            } else if (hide && showingColors){
+              Future.delayed(const Duration(seconds: 1), () => setState(() {
+                showingColors = false;
+                hide = false;
+              })
+              );
+            }   
       });
     }
     return Scaffold(
